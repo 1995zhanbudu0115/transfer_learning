@@ -31,11 +31,11 @@ class TCA:
         :param n_targetget: number of target samples
         :return:
         """
+        # 推导公式中的M
         L_ss = (1. / (n_source * n_source)) * np.full((n_source, n_source), 1)
         L_st = (-1. / (n_source * n_targetget)) * np.full((n_source, n_targetget), 1)
         L_ts = (-1. / (n_targetget * n_source)) * np.full((n_targetget, n_source), 1)
         L_tt = (1. / (n_targetget * n_targetget)) * np.full((n_targetget, n_targetget), 1)
-
         L_up = np.hstack((L_ss, L_st))
         L_down = np.hstack((L_ts, L_tt))
         L = np.vstack((L_up, L_down))
@@ -87,17 +87,22 @@ class TCA:
         n_source = x_source.shape[0]
         n_target = x_target.shape[0]
         self.X = np.vstack((x_source, x_target))
+        # 计算L矩阵(M)
         L = self._get_L(n_source, n_target)
         L[np.isnan(L)] = 0
         K = self._kernel_func(self.X)
         K[np.isnan(K)] = 0
+        # 计算中心矩阵H
         H = np.identity(n_source + n_target) - 1. / (n_source + n_target) * np.ones(shape=(n_source + n_target, 1)) * np.ones(
             shape=(n_source + n_target, 1)).T
+        # 计算（K*L*K+mu*I）的逆矩阵
         forPinv = self.mu * np.identity(n_source + n_target) + np.dot(np.dot(K, L), K)
         forPinv[np.isnan(forPinv)] = 0
+        # 计算(K*L*K+mu*I)^-1 * (K*H*K)
         Kc = np.dot(np.dot(np.dot(np.linalg.pinv(forPinv), K), H), K)
         Kc[np.isnan(Kc)] = 0
-        D, V = np.linalg.eig(Kc)
+        # 对核技巧映射后的矩阵求特征值
+        D, V = np.linalg.eig(Kc) # 返回特征值与特征向量
         eig_values = D.reshape(len(D), 1)
         eig_values_sorted = np.sort(eig_values[::-1], axis=0)
         index_sorted = np.argsort(-eig_values, axis=0)
