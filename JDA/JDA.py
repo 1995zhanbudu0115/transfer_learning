@@ -29,8 +29,8 @@ class JDA:
         ns = x_source.shape[-1]
         nt = x_target.shape[-1]
         for i in range(self.N):
-
             Z, A = self._get_JDA_matrix(x_source, x_target, y_source, y_target0)
+            # 多维矩阵相乘
             Z = np.matmul(Z, np.diag(1 / np.sqrt(np.sum(np.square(Z), 0))))
             self.Zs = Z[:, :ns]
             self.Zt = Z[:, ns:]
@@ -102,7 +102,6 @@ class JDA:
 
             A = eigenvector[:, idx]
             Z = np.matmul(A.T, X)
-
         else:
             K = self._kernel_func(X)
             a = np.matmul(np.matmul(K, M), K.T) + self.lmbda * np.eye(n)

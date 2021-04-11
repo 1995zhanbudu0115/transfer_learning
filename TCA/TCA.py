@@ -102,15 +102,12 @@ class TCA:
         Kc = np.dot(np.dot(np.dot(np.linalg.pinv(forPinv), K), H), K)
         Kc[np.isnan(Kc)] = 0
         # 对核技巧映射后的矩阵求特征值
-        D, V = np.linalg.eig(Kc) # 返回特征值与特征向量
-        eig_values = D.reshape(len(D), 1)
-        eig_values_sorted = np.sort(eig_values[::-1], axis=0)
-        # 从大到小排序
-        index_sorted = np.argsort(-eig_values, axis=0)
-        V = V[:, index_sorted]
-        self.V = V.reshape((V.shape[0], V.shape[1]))
-        x_source_tca = np.dot(K[:n_source, :], V)
-        x_target_tca = np.dot(K[n_source:, :], V)
+        w, V = np.linalg.eig(Kc) # 返回特征值与特征向量
+        # 对特征值从小到大进行排序
+        ind = np.argsort(w)
+        self.A = V[:, ind[:self.dim]]
+        x_source_tca = np.dot(K[:n_source, :], self.A)
+        x_target_tca = np.dot(K[n_source:, :], self.A)
 
         x_source_tca = np.asarray(x_source_tca[:, :self.dim], dtype=float)
         x_target_tca = np.asarray(x_target_tca[:, :self.dim], dtype=float)
@@ -124,7 +121,7 @@ class TCA:
         :return:
         """
         K_target = self._kernel_func(self.X, x_target)
-        x_target_tca = np.dot(K_target, self.V)
+        x_target_tca = np.dot(K_target, self.A)
         x_target_tca = x_target_tca[:, :self.dim]
 
         return x_target_tca
