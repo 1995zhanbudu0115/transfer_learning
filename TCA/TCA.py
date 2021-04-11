@@ -105,6 +105,7 @@ class TCA:
         D, V = np.linalg.eig(Kc) # 返回特征值与特征向量
         eig_values = D.reshape(len(D), 1)
         eig_values_sorted = np.sort(eig_values[::-1], axis=0)
+        # 从大到小排序
         index_sorted = np.argsort(-eig_values, axis=0)
         V = V[:, index_sorted]
         self.V = V.reshape((V.shape[0], V.shape[1]))
